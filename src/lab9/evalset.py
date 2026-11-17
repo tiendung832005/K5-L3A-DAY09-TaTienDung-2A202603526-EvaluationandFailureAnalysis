@@ -47,7 +47,7 @@ def build(source: Path = SOURCE) -> tuple[int, int]:
             "item_id": item_id,
             "claim_id": claim["claim_id"],
             # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+           "failure_modes": _infer_failure_modes(claim),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
                            "from_trace": None, "generator": None,
                            "label_by": "lab8_matrix", "checked_by": None},
@@ -59,6 +59,30 @@ def build(source: Path = SOURCE) -> tuple[int, int]:
     ITEMS.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8")
     LABELS.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8")
     return len(items), len(labels)
+
+_MATRIX_FM_MAP: dict[str, list[str]] = {
+    "T01": ["FM-04"],
+    "T02": ["FM-03"],
+    "T03": ["FM-04"],
+    "T04": ["FM-02"],
+    "T05": ["FM-01", "FM-09"],
+    "T06": ["FM-06"],
+    "T07": ["FM-02"],
+    "T08": ["FM-08"],
+    "T09": ["FM-03"],
+    "T10": ["FM-01", "FM-07"],
+    "T11": ["FM-07"],
+    "T12": ["FM-07"],
+    "T13": ["FM-02", "FM-05"],
+    "T14": ["FM-05", "FM-08"],
+}
+
+
+def _infer_failure_modes(claim: dict[str, Any]) -> list[str]:
+    mid = str(claim.get("matrix_id") or "").upper()
+    if mid in _MATRIX_FM_MAP:
+        return list(_MATRIX_FM_MAP[mid])
+    return ["FM-03"]
 
 
 def slices_for(expected: dict[str, Any], adversarial: bool) -> list[str]:
